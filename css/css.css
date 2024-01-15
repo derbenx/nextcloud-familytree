@@ -1,0 +1,11 @@
+ #can{top:0px;left:0px;position:fixed;}
+ table,.inp { width:95%; }
+ tr,td,input,#r,#s { min-height:25px !important; height:25px !important; }
+ #addPer,#updPer,#delPer,#cent,#nt,#st,#lt,#fu,#sh { padding:0px 7px 0px 7px !important; font-size: 13px !important; min-height:23px !important; height:23px !important; }
+ #bg {min-height:23px !important; height:23px !important;}
+ td { border:1px dotted green; color:black; text-align:center; }
+ tr:hover {background:none !important; }
+ #ln,#hp { width:49%; height:150px; }
+ #inp { z-index:99;position:relative; background:grey; color:black; }
+ #sh,#fu { z-index:99;position:relative; }
+

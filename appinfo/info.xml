@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<info xmlns:xsi= "http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+    <id>familytree</id>
+    <name>Family Tree</name>
+    <summary>Family Tree</summary>
+    <description><![CDATA[
+# familytree
+A Nextcloud app that lets you build your own family tree.
+    ]]></description>
+    <version>1.2.1</version>
+    <licence>agpl</licence>
+    <author mail="colin@derben.ca" homepage="https://derben.ca">DerBen</author>
+    <namespace>familytree</namespace>
+    <category>tools</category>
+    <website>https://github.com/derbenx/nextcloud-familytree</website>
+    <bugs>https://github.com/derbenx/nextcloud-familytree/issues</bugs>
+    <screenshot>https://raw.githubusercontent.com/derbenx/nextcloud-familytree/familytree.png</screenshot>
+    <dependencies>
+        <nextcloud min-version="25" max-version="29"/>
+    </dependencies>
+	    <navigations>
+        <navigation>
+            <name>Family Tree</name>
+            <route>familytree.page.index</route>
+        </navigation>
+    </navigations>
+</info>
