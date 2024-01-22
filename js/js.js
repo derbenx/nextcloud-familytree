@@ -1,7 +1,6 @@
-
 /*
  TO DO
- 
+
  load GED files (partial)
  zoom
  manually add lines to merge branches
@@ -10,9 +9,14 @@
 */
 
 //Global Variables ***
+ver="1.2.3"; //VERSION
+document.getElementById('ver').innerHTML="Ver "+ver;
+
 //define json structure
+const newdata='{ "pan":[ { "x":0,"y":0 } ], "tree":"My Family", "select":0, "people":[ ], "lines":[ ] }';
 
 const box={w:200,h:100};
+const lng = document.getElementById('lang');
 const cent = document.getElementById('cent');
 const aPer = document.getElementById('addPer');
 const uPer = document.getElementById('updPer');
@@ -35,18 +39,27 @@ const dt = document.getElementById('d');
 const rl = document.getElementById('r');
 const can=document.getElementById('can');
 const ctx = can.getContext("2d");
-var data='{ "pan":[ { "x":0,"y":0 } ], "tree":"My Family", "select":0, "people":[ ], "lines":[ ] }';
+var data=newdata;
 var sex=['pink','cyan','#552255','grey'];
-var rel=['white','red','green','blue','orange','yellow','grey'];
-var rex=['undecided','marriage','parental','siblings','adopted','divorced','unwed parents'];
 var aw=window.innerWidth;
 var ah=window.innerHeight;
 var hsChld=[]; //delete helper
 var fs=1,hole,json,drag=0,selc=[-1],rstim; //scrn resize timer;
 var p={x:10,y:15}; //drag pan previous
 bg.selectedIndex=0;
+document.getElementById('addPer').disabled=false;
 document.getElementById('updPer').disabled=true;
 document.getElementById('delPer').disabled=true;
+
+//setup translate
+for (a in lng.lines) { ln.options.remove(0); } //clear
+for(let i=0;i<tran.length;i++){
+ var op = document.createElement("option");
+ op.text = tran[i][0];
+ op.value=i;
+ lng.add(op);
+}
+
 
 //Functions ***
 function draw(cl=0){
@@ -72,7 +85,8 @@ function draw(cl=0){
    if (json.lines[i].rl==0 && bg.selectedIndex==1){
     tmp='black';
    } else {
-    tmp=rel[json.lines[i].rl]
+    //tmp=rel[json.lines[i].rl]
+    tmp=tran[0][26+json.lines[i].rl]; //don't translate colours here
    }
    ctx.strokeStyle=tmp;
    //console.log(json.lines[i].rl);
@@ -158,17 +172,22 @@ function clkd(evn){
  p.y=evn.clientY;
  
  selc=chk(p.x,p.y);
- console.log(selc,p);
+ //console.log(selc,p);
+
  if (selc[0]<1 || hsChld[selc[0]] && hsChld[selc[0]].length>0) {
   //only enable if no sublinks
   document.getElementById('delPer').disabled=true;
  } else {
   document.getElementById('delPer').disabled=false;
  }
- 
+ //console.log(selc,json.people.length);
+ if (json.people.length==0 || selc[0]>-1){
+  document.getElementById('addPer').disabled=false;
+ } else {
+  document.getElementById('addPer').disabled=true;
+ }
  if (selc[0]>-1){
   document.getElementById('updPer').disabled=false;
-   
   gn.value=json.people[selc[0]].gn;
   fn.value=json.people[selc[0]].fn;
   sx.selectedIndex=json.people[selc[0]].sx;
@@ -249,10 +268,10 @@ function hide(){
  let tmp=document.getElementById('inp');
  if (tmp.style.display=='none'){
   tmp.style.display='block';
-  document.getElementById('sh').innerHTML='Hide';
+  document.getElementById('sh').innerHTML=tran[lng.selectedIndex][45]; //'Hide';
  } else {
   tmp.style.display='none';
-  document.getElementById('sh').innerHTML='Show';
+  document.getElementById('sh').innerHTML=tran[lng.selectedIndex][46]; //'Show';
  }
 }
 function poplst(cl=0){
@@ -261,7 +280,10 @@ function poplst(cl=0){
  //populate list
  for(let i=0;i<json.lines.length;i++){
   var op = document.createElement("option");
-  op.text = json.lines[i].id+'='+rel[json.lines[i].rl];
+  //var tmp = json.lines[i].id+'='+rel[json.lines[i].rl]+'='+json.lines[i].rl;
+  var tmp = json.lines[i].id+'='+tran[lng.selectedIndex][26+json.lines[i].rl];
+  op.text = tmp;
+  //console.log(tmp,json.lines[i].rl);
   op.value=json.lines[i].rl;
   ln.add(op);
  }
@@ -272,8 +294,13 @@ function addPer(){
  document.getElementById('delPer').disabled=true;
  //console.log(a,json.people.length);
  if (json.people.length>0 && a==-1){
-  alert("Can't add person without relation, select someone first!"); return;
+  alert(tran[lng.selectedIndex][49]); return;
  }
+ if (json.people.length==0) {
+  selc = [0];
+  document.getElementById('updPer').disabled=false;
+ }
+ 
  var x,y;
  var b=hole.length>0 ? hole[0] : json.people.length;
  //console.log(a);
@@ -318,7 +345,7 @@ function updPer(){
 function delPer(){
  //console.log(selc,hsChld[selc]);
  if (selc[0]==0 || hsChld[selc[0]] && hsChld[selc[0]].length>0) {
-  alert("Can't delete person with sub branches or id:0");
+  alert(tran[lng.selectedIndex][50]);
   return;    
  } else {
   //delete
@@ -339,6 +366,9 @@ function delPer(){
   }
  }
  //console.log(selc[0]);
+ document.getElementById('addPer').disabled=true;
+ document.getElementById('updPer').disabled=true;
+ document.getElementById('delPer').disabled=true;
  bldHsCh();
  poplst();
  draw(1);
@@ -385,6 +415,7 @@ function updln(){
  selc=[-1];
  poplst();
  draw(1);
+ document.getElementById('addPer').disabled=true;
  document.getElementById('updPer').disabled=true;
  document.getElementById('delPer').disabled=true;
 }
@@ -400,7 +431,13 @@ function mselc(){
  if (n1==" "){ n1="id:"+json.people[tmp[0]].id; }
  n2=json.people[tmp[1]].gn+" "+json.people[tmp[1]].fn;
  if (n2==" "){ n2="id:"+json.people[tmp[1]].id; }
- hp.value='The relation between '+n1+" and "+n2+" is "+rex[rl.value]+'. You can change this by using the relation drop down on the left.';
+ //console.log(rl.value,tran[lng.selectedIndex][14+rl.value]);
+ if (rl.value=="0") {
+  tmp=tran[lng.selectedIndex][47]+" > "; //undecided
+ } else {
+  tmp=tran[lng.selectedIndex][14+parseInt(rl.value)];
+ }
+ hp.value=tran[lng.selectedIndex][33]+n1+tran[lng.selectedIndex][34]+n2+" = < "+tmp+tran[lng.selectedIndex][35]
  draw(1);
 }
 
@@ -428,21 +465,22 @@ function openFD(a,c) {
 }
 
 function newt() {
- if (prompt("If you want to clear this tree type:\n yes ")=='yes') {
+ if (prompt(tran[lng.selectedIndex][48]+"\n yes ")=='yes') {
   document.getElementById('updPer').disabled=true;
   document.getElementById('delPer').disabled=true;
   poplst(1);
   selc=[-1];
-  data='{"pan":[{"x":0,"y":0}],"tree":"My Family","people":[],"lines":[]}';
+  data=newdata;
   start();
  }
 
 }
 function save() {
+ if (json.people.length==0) { return; }
  if (tr.value=='') {
-  alert('Enter tree name first!');
+  alert(tran[lng.selectedIndex][51]);
   return;
-  }
+ }
  saved= JSON.stringify(json);
  var name=tr.value.replace(" ","_")+".json";
  var a = document.createElement('a');
@@ -460,18 +498,47 @@ function chbg() {
  elm.style.background=bc;
  draw();
 }
-
+function lang(){
+ //console.log('lng',lng.selectedIndex);
+ for(let i=1;i<=26;i++){
+  var tmp=tran[lng.selectedIndex][i];
+  if (tmp.substr(-2,1)==">") {
+   tmp+=tran[lng.selectedIndex][i+12];
+  }
+  //console.log(i,tmp.substr(-2,1));
+  document.getElementById("t"+i).innerHTML=tmp;
+ }
+ var i=36;
+ aPer.innerHTML=tran[lng.selectedIndex][i++];
+ uPer.innerHTML=tran[lng.selectedIndex][i++];
+ dPer.innerHTML=tran[lng.selectedIndex][i++];
+ //detect full screen apply right translation
+ fu.innerHTML=tran[lng.selectedIndex][fs+i++];
+ //console.log("fs",fs,tran[lng.selectedIndex][fs+i++]);
+ i++; //skip Normal
+ nt.innerHTML=tran[lng.selectedIndex][i++];
+ st.innerHTML=tran[lng.selectedIndex][i++];
+ lt.innerHTML=tran[lng.selectedIndex][i++];
+ cent.innerHTML=tran[lng.selectedIndex][i++];
+ hd.innerHTML=tran[lng.selectedIndex][i++];
+ poplst();
+}
 function fullscreen(){
+ //console.log();
  if (fs==0){
   fs=1;
-  document.getElementById('fu').innerHTML='Normal';
+  //document.getElementById('fu').innerHTML='Normal';
+  
   var elm=document.getElementById("app-content");
   elm.requestFullscreen();
  } else {
   fs=0;
-  document.getElementById('fu').innerHTML='Fullscreen';
-  document.exitFullscreen();
+  //document.getElementById('fu').innerHTML='Fullscreen';
+  if (document.fullscreenElement?.nodeName!=undefined){
+   document.exitFullscreen();
+  }
  }
+ fu.innerHTML=tran[lng.selectedIndex][39+fs];
  setTimeout(() => {
   var inp=document.getElementById("inp").getBoundingClientRect();
   var tmp=inp.top + window.scrollY;
@@ -502,6 +569,7 @@ ln.addEventListener('click', mselc);
 ln.addEventListener('keyup', mselc);
 rl.addEventListener('change', updln);
 bg.addEventListener('change', chbg);
+lng.addEventListener('change', lang);
 hd.addEventListener('click', hide);
 fu.addEventListener('click', fullscreen);
 //ln.addEventListener('dblclick', updln);

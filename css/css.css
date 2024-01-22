@@ -5,7 +5,7 @@
  #bg {min-height:23px !important; height:23px !important;}
  td { border:1px dotted green; color:black; text-align:center; }
  tr:hover {background:none !important; }
- #ln,#hp { width:49%; height:150px; }
+ #ln,#hp { width:49% !important; height:200px; }
  #inp { z-index:99;position:relative; background:grey; color:black; }
  #sh,#fu { z-index:99;position:relative; }
-
+ #app-content { height:100%; background:black; }
