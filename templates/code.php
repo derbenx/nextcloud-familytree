@@ -22,7 +22,7 @@
 </td></tr>
 <tr><td id='t5'>Birth:</td><td><input class='inp' id='b'></td></tr>
 <tr><td id='t6'>Death:</td><td><input class='inp' id='d'></td></tr>
-<tr><td id='t7'>Other info:</td><td><input class='inp' id='o'></td></tr>
+<tr><td id='t7'>Other info:</td><td><textarea class='inp' id='o'></textarea></td></tr>
 <tr><td id='t8'>Relation:</td><td>
 <select id="r">
  <option id='t14' value="0">Choose</option>
@@ -44,15 +44,7 @@
 <font id='t21'>Background colour:</font><select id='bg'><option id='t25'>Black</option><option id='t26'>White</option></select>
 (<input type="checkbox" id='mu'> <font id='t22'>Select multiple</font>)
 (<font id='t23'>Translate:</font><select id="lang">
-<!-- <option value="0">English</option>
- <option value="1">Francais</option>
- <option value="2">Espanol</option>
- <option value="3">Dutche</option>
- <option value="4">Swede</option>
- <option value="5"></option>
- <option value="6"></option>
--->
-</select>)
+</select>) <button id='imp'>Import GED</button>
 
 </div>
 <button id='sh'>Hide</button>

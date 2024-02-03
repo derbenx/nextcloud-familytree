@@ -1,21 +1,23 @@
 /*
  TO DO
 
- load GED files (partial)
+ Sort GED files
+ export GED files - https://www.gedcom.org/validators.html
  zoom
- manually add lines to merge branches
  photos/sounds?
 
 */
 
 //Global Variables ***
-ver="1.2.3"; //VERSION
+ver="1.3.0"; //VERSION
 document.getElementById('ver').innerHTML="Ver "+ver;
 
 //define json structure
 const newdata='{ "pan":[ { "x":0,"y":0 } ], "tree":"My Family", "select":0, "people":[ ], "lines":[ ] }';
 
 const box={w:200,h:100};
+const imp = document.getElementById('imp');
+//const exp = document.getElementById('exp');
 const lng = document.getElementById('lang');
 const cent = document.getElementById('cent');
 const aPer = document.getElementById('addPer');
@@ -73,28 +75,28 @@ function draw(cl=0){
  //lines
  for(let i=0;i<json.lines.length;i++){
   var o=json.lines[i].id.split('-');
-  //console.log(o[0],o[1]);
-  //if (json.people[o[0]]!=null){
+  //console.log(o, o[0],o[1]);
+  //if (o[0]!="" && o[1]!=""){
 
-  var sx=json.people[o[0]].x+json.pan[0].x+(json.people[o[0]].w)/2;
-  var sy=-yyy+json.people[o[0]].y+json.pan[0].y+(json.people[o[0]].h)/2;
-  var ex=json.people[o[1]].x+json.pan[0].x+(json.people[o[1]].w)/2;
-  var ey=-yyy+json.people[o[1]].y+json.pan[0].y+(json.people[o[1]].h)/2;
-  //if (i==2) { console.log(sx,sy,ex,ey) }
-  if (sx>lx && sy>ly && ex>lx && ey>ly && sx<aw && sy<ah && ex<aw && ey<ah){
-   if (json.lines[i].rl==0 && bg.selectedIndex==1){
-    tmp='black';
-   } else {
-    //tmp=rel[json.lines[i].rl]
-    tmp=tran[0][26+json.lines[i].rl]; //don't translate colours here
+   var sx=json.people[o[0]].x+json.pan[0].x+(json.people[o[0]].w)/2;
+   var sy=-yyy+json.people[o[0]].y+json.pan[0].y+(json.people[o[0]].h)/2;
+   var ex=json.people[o[1]].x+json.pan[0].x+(json.people[o[1]].w)/2;
+   var ey=-yyy+json.people[o[1]].y+json.pan[0].y+(json.people[o[1]].h)/2;
+   //if (i==2) { console.log(sx,sy,ex,ey) }
+   if (sx>lx && sy>ly && ex>lx && ey>ly && sx<aw && sy<ah && ex<aw && ey<ah){
+    if (json.lines[i].rl==0 && bg.selectedIndex==1){
+     tmp='black';
+    } else {
+     //tmp=rel[json.lines[i].rl]
+     tmp=tran[0][26+json.lines[i].rl]; //don't translate colours here
+    }
+    ctx.strokeStyle=tmp;
+    //console.log(json.lines[i].rl);
+    ctx.beginPath();
+    ctx.lineWidth="3";
+    ctx.moveTo(sx, sy); ctx.lineTo(ex,ey);
+    ctx.stroke();
    }
-   ctx.strokeStyle=tmp;
-   //console.log(json.lines[i].rl);
-   ctx.beginPath();
-   ctx.lineWidth="3";
-   ctx.moveTo(sx, sy); ctx.lineTo(ex,ey);
-   ctx.stroke();
-  }
   //}
  }
 
@@ -170,7 +172,6 @@ function clkd(evn){
  rl.selectedIndex=0;
  p.x=evn.clientX;
  p.y=evn.clientY;
- 
  selc=chk(p.x,p.y);
  //console.log(selc,p);
 
@@ -214,23 +215,29 @@ function movr(evn){
   } else if (json.people[selc[0]]!=null) {
    //or move person
    //console.log('poo');
-   //var ro=10;
+   //console.log(evn.clientX,evn.clientY);
+   var bo=50,px=0,py=0;
+   if (evn.clientX<bo) { px=2 }
+   if (evn.clientX>aw-bo ) { px=-2 }
+   if (evn.clientY<bo) { py=2 }
+   if (evn.clientY>ah-bo ) { py=-2 }
+   if (px || py) { pan(px,py); }
    //xy=[Math.round((evn.clientX-p.x)/ro)*ro,Math.round((evn.clientY-p.y)/ro)*ro];
    for (var i=0;i<selc.length;i++){
-    json.people[selc[i]].x+=evn.clientX-p.x;
-    json.people[selc[i]].y+=evn.clientY-p.y;
+    json.people[selc[i]].x+=evn.clientX-p.x-px;
+    json.people[selc[i]].y+=evn.clientY-p.y-py;
    }
    draw(1);
   }
   
   p.x=evn.clientX;
   p.y=evn.clientY;
- } else {
+ } //else {
   //hover if over person, highlight rectangle
-  if (selc[0]!=-1) {
+  //if (selc[0]!=-1) {
    //draw();
-  }
- }
+  //}
+ //}
 }
 
 function chk(xx,yy){
@@ -281,7 +288,13 @@ function poplst(cl=0){
  for(let i=0;i<json.lines.length;i++){
   var op = document.createElement("option");
   //var tmp = json.lines[i].id+'='+rel[json.lines[i].rl]+'='+json.lines[i].rl;
-  var tmp = json.lines[i].id+'='+tran[lng.selectedIndex][26+json.lines[i].rl];
+  var tmp=json.lines[i].id.split('-');
+  a1= Number.isInteger(tmp[0]*1) ? tmp[0] : fpi(tmp[0]) ;
+  a2= Number.isInteger(tmp[1]*1) ? tmp[1] : fpi(tmp[1]) ;
+  if (json.lines[i].id != a1+'-'+a2) {
+   json.lines[i].id = a1+'-'+a2;
+  }
+  var tmp = a1+'-'+a2+'='+tran[lng.selectedIndex][26+json.lines[i].rl];
   op.text = tmp;
   //console.log(tmp,json.lines[i].rl);
   op.value=json.lines[i].rl;
@@ -305,10 +318,13 @@ function addPer(){
  var b=hole.length>0 ? hole[0] : json.people.length;
  //console.log(a);
  if (a!=-1) {
-  x=json.people[a].x+250;
-  y=json.people[a].y;
+  var ofx=Math.round(Math.random()*(box.w*2))-box.w;
+  var ofy=box.h+10+Math.round(Math.random()*40);
+  ofy=Math.round(Math.random()) ? ofy : -ofy;
+  x=json.people[a].x+ofx;
+  y=json.people[a].y+ofy;
  } else {
-  x=100;y=300; 
+  x=400;y=400; 
  }
  var tmp={"id":b,"x":x,"y":y,"w":box.w,"h":box.h,"gn":gn.value,"fn":fn.value,"sx":sx.selectedIndex,"br":br.value,"dt":dt.value,"oi":oi.value};
  if (hole.length>0){
@@ -464,8 +480,8 @@ function openFD(a,c) {
  inp.click(); //inp.dispatchEvent(new MouseEvent("click"));
 }
 
-function newt() {
- if (prompt(tran[lng.selectedIndex][48]+"\n yes ")=='yes') {
+function newt(sk=0) {
+ if (sk==1 || prompt(tran[lng.selectedIndex][48]+"\n yes ")=='yes') {
   document.getElementById('updPer').disabled=true;
   document.getElementById('delPer').disabled=true;
   poplst(1);
@@ -521,6 +537,7 @@ function lang(){
  lt.innerHTML=tran[lng.selectedIndex][i++];
  cent.innerHTML=tran[lng.selectedIndex][i++];
  hd.innerHTML=tran[lng.selectedIndex][i++];
+ imp.innerHTML=tran[lng.selectedIndex][52];
  poplst();
 }
 function fullscreen(){
@@ -548,6 +565,148 @@ function fullscreen(){
  }, "500");
 }
 
+function uptrn() { //update tree name in json
+ json.tree=tr.value;
+ return;
+}
+function impged(e) {
+ alert(tran[lng.selectedIndex][53]);
+ newt(1);
+ var file = e.target.files[0];
+ if (!file) { return; }
+ var reader = new FileReader();
+ reader.onload = function(e) {
+   //data = e.target.result;
+   //start();
+   //console.log(e.target.result);
+   var blk=-1, skp=0, prev='', fam, xx=-1, yy=0,rawname;
+   var tmp=e.target.result.split("\n");
+   //console.log(tmp);
+   tmp.forEach(function(l,i){
+    //console.log(i,l);
+    l=l.trim();
+    var ll=l.split(" ");
+    if (ll[0]=='0' && ll[2]=='FAM') {
+     skp=1; fam={h:-1,w:-1,c:-1};
+    }
+    if (ll[0]=='0' && ll[2]=='INDI') {
+     if (blk>=0 && rawname && json.people[blk].gn=='') {
+      tmp=rawname.split("/");
+      //console.log(tmp);
+      json.people[blk].gn=tmp[0]==undefined ? "" : tmp[0];
+     }
+     if (blk>=0 && rawname && json.people[blk].fn=='') {
+      tmp=rawname.split("/");
+      //console.log(tmp);
+      json.people[blk].fn=tmp[1]==undefined ? "" : tmp[1];
+     }
+     blk++; skp=0; xx++;
+     if (xx>5) { xx=0;yy--; }
+     //console.log('blk',blk);
+     var tmp={"id":blk,"x":(box.w*(xx*1.1)),"y":(box.h*(yy*1.1)),"w":box.w,"h":box.h,"gn":'',"fn":'',"sx":sx.selectedIndex,"br":'',"dt":'',"oi":'',"indi":l.split("@")[1]};
+     json.people.push(tmp);
+     rawname='';
+    }
+    
+    if (blk==-1 && l.includes('_TREE')) {
+     tr.value=l.replace(/\w+.\w+./,"");
+     uptrn();
+    }
+    if (skp==1 && blk>=0) {
+     //setup lines
+     if (l.includes('HUSB')) {
+      fam.h=fpi(l.split("@")[1]);
+      //console.log(fam.h,fam.w);
+      if (fam.w>-1) {
+       json.lines.push({"id":fam.w+"-"+fam.h,"rl":1});
+      }
+     }
+     if (l.includes('WIFE')) {
+      fam.w=fpi(l.split("@")[1]);
+      //console.log(fam.h,fam.w);
+      if (fam.h>-1) {
+       json.lines.push({"id":fam.w+"-"+fam.h,"rl":1});
+      }
+     }
+     if (l.includes('CHIL')) {
+      fam.c=fpi(l.split("@")[1]);
+      var a= fam.w==-1 ? fam.h : fam.w;
+      //console.log(a, fam);
+      if (a>-1) {
+       json.lines.push({"id":a+"-"+fam.c,"rl":2});
+      } else {
+       //broken lines
+       //console.log(a, fam);
+      }
+     }
+     //console.log(fam);
+    }
+    if (skp==0 && blk>=0) {
+     //setup people
+     //console.log(i,l);
+     if (l.includes('NOTE')) {
+      prev='n';
+      json.people[blk].oi=json.people[blk].oi.trim()+"\n"+tran[lng.selectedIndex][61]+l.replace(/\w+.\w+./,"");
+     }
+     if (l.includes('ADOP')) { prev='a'; json.people[blk].oi=json.people[blk].oi.trim()+"\n"+tran[lng.selectedIndex][62]; }
+     if (l.includes('TITL')) { json.people[blk].oi=json.people[blk].oi.trim()+"\n"+tran[lng.selectedIndex][63]+l.replace(/\w+.\w+./,""); }
+     if (l.includes('CHR')) { prev='c'; }
+     if (l.includes('CREM')) { prev='t'; }
+     if (l.includes('BAPM')) { prev='r'; }
+     if (l.includes('BURI')) { prev='g'; }
+     if (l.includes('DEAT')) { prev='d'; }
+     if (l.includes('BIRT')) { prev='b'; }
+     if (l.includes('DATE') && prev!='') {
+      if (prev=='b') {
+       json.people[blk].br=l.replace(/\w+.\w+./,"").trim();
+      }
+      if (prev=='d') {
+       json.people[blk].dt=l.replace(/\w+.\w+./,"").trim();
+      }
+     }
+     if (prev && (l.includes('PLAC') || l.includes('CONT') || l.includes('DATE'))) {
+      var xp='';
+      if (l.replace(/\w+.\w+./,"").trim()!='') {
+       if (prev=='n') { xp="\n"+tran[lng.selectedIndex][61]; }
+       if (prev=='c') { xp="\n"+tran[lng.selectedIndex][55]; }
+       if (prev=='t') { xp="\n"+tran[lng.selectedIndex][56]; }
+       if (prev=='a') { xp="\n"+tran[lng.selectedIndex][54]; }
+       if (prev=='r') { xp="\n"+tran[lng.selectedIndex][57]; }
+       if (prev=='g') { xp="\n"+tran[lng.selectedIndex][58]; }
+       if (prev=='b' && !l.includes('DATE')) { xp="\n"+tran[lng.selectedIndex][59]; }
+       if (prev=='d' && !l.includes('DATE')) { xp="\n"+tran[lng.selectedIndex][60]; }
+       if (xp) { json.people[blk].oi=json.people[blk].oi.trim()+xp+l.replace(/\w+.\w+./,""); }
+      }
+     }
+     if (l.includes('NAME')) {
+      //used as a backup for below values
+      rawname=tmp=l.replace(/\w+.\w+./,"");
+     }
+     if (l.includes('GIVN')) {
+      json.people[blk].gn=l.replace(/\w+.\w+./,"").trim();
+     }
+     if (l.includes('SURN')) {
+      json.people[blk].fn=l.replace(/\w+.\w+./,"").trim();
+     }
+     if (l.includes('SEX')) {
+      var s=l.replace(/\d+.\w+./,"").toUpperCase()=='F' ? 0 : 1;
+      json.people[blk].sx=s;
+     }
+    }
+   })
+   poplst();
+   //draw();
+   pan(0,500); //move canvas down
+ };
+ reader.readAsText(file);
+}
+function fpi(n){
+ //find person id
+ for(let i=0;i<json.people.length;i++){
+  if (n==json.people[i].indi) { return i; }
+ }
+ return n;
+}
 //Listeners ***
 window.addEventListener('resize', function(event) { rstim=setTimeout(scale,150); }, true);
 can.onmousedown = clkd;
@@ -567,11 +726,14 @@ st.addEventListener('click', save);
 nt.addEventListener('click', newt);
 ln.addEventListener('click', mselc);
 ln.addEventListener('keyup', mselc);
+tr.addEventListener('change', uptrn);
 rl.addEventListener('change', updln);
 bg.addEventListener('change', chbg);
 lng.addEventListener('change', lang);
 hd.addEventListener('click', hide);
 fu.addEventListener('click', fullscreen);
+imp.onclick = function(){ openFD('.ged',impged) }
+//exp.addEventListener('click', expged);
 //ln.addEventListener('dblclick', updln);
 json = JSON.parse(data);
 cent.cen = 1;
