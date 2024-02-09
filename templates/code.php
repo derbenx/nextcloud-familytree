@@ -33,19 +33,20 @@
  <option id='t19' value="5">Divorced > Yellow</option>
  <option id='t20' value="6">Unwed parents > Grey</option>
 </select>
-</td></tr>
-<tr><td id='t9'>Buttons:</td><td><button id="addPer" disabled>New Person</button><button id="updPer" disabled>Update Selected</button><button id="delPer" disabled>Delete Selected</button></td><td id='ver'></td></tr>
+</td><td><font id='t23'>Translate: </font><select id="lang">
+</select></td></tr>
+<tr><td id='t9'>Buttons:</td><td><button id="addPer" disabled>New Person</button><button id="updPer" disabled>Update Selected</button><button id="delPer" disabled>Delete Selected</button>
+<button id='t22'>Select multiple</button>
+</td><td><font id='t21'>Background colour:</font><select id='bg'><option id='t25'>Black</option><option id='t26'>White</option></select></td></tr>
 </table>
 <button id='fu'>Fullscreen</button>
 <button id='nt'>New Tree</button>
 <button id='st'>Save Tree</button>
 <button id='lt'>Load Tree</button>
 <button id="cent">Center Tree</button>
-<font id='t21'>Background colour:</font><select id='bg'><option id='t25'>Black</option><option id='t26'>White</option></select>
-(<input type="checkbox" id='mu'> <font id='t22'>Select multiple</font>)
-(<font id='t23'>Translate:</font><select id="lang">
-</select>) <button id='imp'>Import GED</button>
-
+<button id='imp'>Import GED</button>
+<button id='sos'>Help</button>
+[<font id='ver'></font>]
 </div>
 <button id='sh'>Hide</button>
 </div>
