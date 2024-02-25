@@ -6,9 +6,9 @@
     <summary>Family Tree</summary>
     <description><![CDATA[
 # familytree
-A Nextcloud app that lets you build your own family tree.
+A Nextcloud app that lets you build your own family tree, freestyle. All done in your browser, no database required.
     ]]></description>
-    <version>1.3.1</version>
+    <version>1.3.2</version>
     <licence>agpl</licence>
     <author mail="colin@derben.ca" homepage="https://derben.ca">DerBen</author>
     <namespace>familytree</namespace>
@@ -17,7 +17,7 @@ A Nextcloud app that lets you build your own family tree.
     <bugs>https://github.com/derbenx/nextcloud-familytree/issues</bugs>
     <screenshot>https://raw.githubusercontent.com/derbenx/nextcloud-familytree/main/familytreess.png</screenshot>
     <dependencies>
-        <nextcloud min-version="25" max-version="29"/>
+        <nextcloud min-version="25" max-version="30"/>
     </dependencies>
 	    <navigations>
         <navigation>

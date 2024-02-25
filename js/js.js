@@ -1,17 +1,23 @@
 /*
  TO DO
+ 
+ GED Delete issue
+  gedcom555.GED
+  recursive deleting? find other id lines matching ID
+ 
+ zoom
+  half boxes, 3 lines txt?
+  or actual scale zoom?
 
  Sort GED files
-  -families
-  -keep larger family together? (pre sort)
- zoom
+  -any better?
+  
  export GED files? - https://www.gedcom.org/validators.html
- photos/sounds?
 
 */
 
 //Global Variables ***
-ver="1.3.1"; //VERSION
+ver="1.3.2"; //VERSION
 document.getElementById('ver').innerHTML="Ver "+ver;
 
 //define json structure
@@ -47,7 +53,10 @@ const can=document.getElementById('can');
 const ctx = can.getContext("2d");
 var data=newdata;
 var fobur="blur";
+var tim; //pan timer
+var row=[0,1]; //row lengths GED import
 var ged=[]; // GED tree sort data
+var ckged=[]; //GED check again/last
 var sex=['pink','cyan','#552255','grey'];
 var aw=window.innerWidth;
 var ah=window.innerHeight;
@@ -59,6 +68,7 @@ bg.selectedIndex=0;
 document.getElementById('addPer').disabled=false;
 document.getElementById('updPer').disabled=true;
 document.getElementById('delPer').disabled=true;
+
 
 //setup translate
 for (a in lng.lines) { ln.options.remove(0); } //clear
@@ -84,7 +94,6 @@ function draw(cl=0){
   var o=json.lines[i].id.split('-');
   //console.log(o, o[0],o[1]);
   //if (o[0]!="" && o[1]!=""){
-
    var sx=json.people[o[0]].x+json.pan[0].x+(json.people[o[0]].w)/2;
    var sy=-yyy+json.people[o[0]].y+json.pan[0].y+(json.people[o[0]].h)/2;
    var ex=json.people[o[1]].x+json.pan[0].x+(json.people[o[1]].w)/2;
@@ -133,17 +142,21 @@ function draw(cl=0){
      ctx.lineWidth = 8;
      ctx.stroke();
     }
-    font=18;
+    font=16; mc=16;
     ctx.fillStyle="#000";
-    ctx.font = font+"px times";
+    ctx.font = font+"px monospace";
     ctx.fillText('id:'+json.people[i].id, sx+10, sy+(font));
-    ctx.fillText(json.people[i].gn, sx+10,sy+(font*2));
-    ctx.fillText(json.people[i].fn, sx+10,sy+(font*3));
+    tmp=json.people[i].gn.substr(0,mc);
+    ctx.fillText(tmp, sx+10,sy+(font*2));
+    tmp=json.people[i].fn.substr(0,mc);
+    ctx.fillText(tmp, sx+10,sy+(font*3));
     if (json.people[i].br){
-     ctx.fillText('Br: '+json.people[i].br, sx+10,sy+(font*4));
+     tmp=json.people[i].br.substr(0,mc-4);
+     ctx.fillText('Br: '+tmp, sx+10,sy+(font*4));
     }
     if (json.people[i].dt){
-     ctx.fillText('Dt: '+json.people[i].dt, sx+10,sy+(font*5));
+     tmp=json.people[i].dt.substr(0,mc-4);
+     ctx.fillText('Dt: '+tmp, sx+10,sy+(font*5));
     }
    }
   }
@@ -153,7 +166,6 @@ function draw(cl=0){
 function pan(xx,yy,cl=1,ab=0){
  if (cl==1){ ctx.clearRect(0, 0, can.width, can.height); }
  //console.log(xx,xx.currentTarget.cen);
- //for(let i=0;i<json.people.length;i++){
  // console.log(typeof xx);
  if (typeof xx != 'number') { //zero
   json.pan[0].x=0;
@@ -165,14 +177,14 @@ function pan(xx,yy,cl=1,ab=0){
   json.pan[0].x=json.pan[0].x+xx;
   json.pan[0].y=json.pan[0].y+yy;
  }
+ //console.log(json.pan[0].x,json.pan[0].y);
  draw();
 }
 //max=1;min=-1;setInterval( function(){pan(Math.random() * (max - min) + min,Math.random() * (max - min) + min)},100); //pan test
 
 function clku(evn){
  drag=0;
- hp.value=''; //rl.selectedIndex=0;
- //selc=-1;
+ hp.value='';
  //console.log('up',evn);
 }
 
@@ -183,7 +195,7 @@ function clkd(evn){
  p.x=evn.clientX;
  p.y=evn.clientY;
  tmp=chk(p.x,p.y);
- //console.log(tmp);
+ console.log(json.people[tmp]);
  if (tmp!=-1 && mu.classList[0]) { //multiple select mode
   if (selc.includes(tmp)) {
    selc = selc.filter(item => ![tmp].includes(item));
@@ -227,12 +239,9 @@ function movr(evn){
  if (drag) {
   //console.log('drag',evn,selc);
   //console.log('drag',evn.clientX,evn.clientY);
-  if (selc[0]==-1) {
-   //pan canvas
+  if (selc[0]==-1) { //pan canvas
    pan(evn.clientX-p.x,evn.clientY-p.y);
-  } else if (json.people[selc[0]]!=null) {
-   //or move person
-   //console.log('poo');
+  } else if (json.people[selc[0]]!=null) { //or move person
    //console.log(evn.clientX,evn.clientY);
    var bo=50,px=0,py=0;
    if (evn.clientX<bo) { px=2 }
@@ -274,13 +283,11 @@ function chk(xx,yy){
    //console.log('xywh',tx,ty,tw,th);
    if (xx>tx && xx<tw && yy>ty && yy<th) {
     out=i;
-    //if (!mu.checked) { break; }
     break; //only pick topmost
    }
   }
  }
  //console.log(out);
- //if (out.length<1) out=[-1];
  return out;
 }
 
@@ -388,6 +395,7 @@ function delPer(){
   return;    
  } else {
   //delete
+   console.log(json.people[selc[0]],hsChld[selc[0]]);
    json.people[selc[0]]=null;
    //mark as hole for reuse;
    hole.push(selc[0]);
@@ -417,15 +425,12 @@ function bldHsCh(){  //rebuild hasChild
  hsChld=[];
  for(let i=0;i<json.lines.length;i++){
   var o=json.lines[i].id.split('-');
-
   //console.log(o[0],o[1]);
   //build del list
   if (hsChld[o[0]]==undefined){
    hsChld[o[0]]=[];
   }
   hsChld[o[0]].push(o[1]);
-  //hsChld[o[0]]=o[1];
-  //}
  }
 }
 
@@ -443,7 +448,6 @@ function start(){
  scale(); //scale screen
  bldHsCh(); //build has childern
  poplst(); //populate listbox
- //hide();
 }
 
 function updln(){
@@ -462,15 +466,43 @@ function mselc(e){ //ID pairs click
  //console.log(e.type);
  if (ln.length<1 || ln.selectedIndex==-1) { return }
  rl.selectedIndex=ln.value;
- 
  var tmp=ln.options[ln.selectedIndex].label;
  tmp=tmp.split('=');
  tmp=tmp[0].split('-');
  selc=[ tmp[0]*1,tmp[1]*1 ]; //make selection
  pp= e.type!="dblclick" ? 0 : 1 ;
- pan( (aw/2)-json.people[tmp[pp]].x, (ah/2)-json.people[tmp[pp]].y+60,1,1);
+ if (tim!=undefined && tim[0]) {
+  for (ii=0;ii<=pz;ii++) {
+   clearTimeout(tim[ii]);
+   tim[ii]=0;
+  }
+ }
+ pz=25;tim = new Array(pz).fill(0);
+ tx=(aw/2)-json.people[tmp[pp]].x;
+ ty=(ah/2)-json.people[tmp[pp]].y+60;
+ px = json.pan[0].x>tx ? -(json.pan[0].x-tx)/pz : (tx-json.pan[0].x)/pz;
+ py = json.pan[0].y>ty ? -(json.pan[0].y-ty)/pz : (ty-json.pan[0].y)/pz;
+ py = isNaN(py) ? 0 : py;
+ px = isNaN(px) ? 0 : px;
+ tx = isNaN(tx) ? 0 : tx;
+ ty = isNaN(ty) ? 0 : ty;
+ //console.log('st',json.pan[0].x,json.pan[0].y)
+ for (i=0;i<=pz;i++) {
+  //console.log(json.pan[0].x+px,json.pan[0].x+py)
+  if (i==pz) {
+   tim[i]=setTimeout( function(){ 
+    for (ii=0;ii<pz;ii++) {
+     tim[ii]=0;
+    }
+   },i*25);
+  } else {
+   tim[i]=setTimeout( function(){
+    pan(px,py,1,0);
+   },i*30);
+  }
+ }
+ //console.log('en',tx,ty)
  //console.log(selc,pos);
- 
  n1=json.people[tmp[0]].gn+" "+json.people[tmp[0]].fn;
  if (n1==" "){ n1="id:"+json.people[tmp[0]].id; }
  n2=json.people[tmp[1]].gn+" "+json.people[tmp[1]].fn;
@@ -517,8 +549,8 @@ function newt(sk=0) {
   data=newdata;
   start();
  }
-
 }
+
 function save() {
  if (json.people.length==0) { return; }
  if (tr.value=='') {
@@ -537,7 +569,6 @@ function chbg() {
  //console.log(bg);
  if (bg.selectedIndex==0) { bc='black'; }
  if (bg.selectedIndex==1) { bc='white'; }
- //document.body.style.background=bc;
  var elm=document.getElementById("app-content");
  elm.style.background=bc;
  draw();
@@ -574,8 +605,7 @@ function fullscreen(){
  if (fs==0){
   fs=1;
   //document.getElementById('fu').innerHTML='Normal';
-  
-  var elm=document.getElementById("app-content");
+    var elm=document.getElementById("app-content");
   elm.requestFullscreen();
  } else {
   fs=0;
@@ -598,27 +628,29 @@ function uptrn() { //update tree name in json
  json.tree=tr.value;
  return;
 }
+
 function impged(e) {
  //alert(tran[lng.selectedIndex][53]);
- newt(1); ged=[];
+ newt(1); ged={};
  var file = e.target.files[0];
  if (!file) { return; }
  var reader = new FileReader();
  reader.onload = function(e) {
-   //data = e.target.result;
-   //start();
-   //console.log(e.target.result);
-   var blk=-1, skp=0, prev='', fam, xx=-1, yy=0,rawname;
-   var tmp=e.target.result.split("\n");
-   //console.log(tmp);
-   tmp.forEach(function(l,i){
+  oi.value='';
+  gn.value='';
+  fn.value='';
+  br.value='';
+  dt.value='';
+  //console.log(e.target.result);
+  var blk=-1, skp=0, prev='', fam, xx=-1, yy=0,rawname,nf,ch;
+  var rtmp=e.target.result.split("\n");
+  //console.log(rtmp.length);
+  //tmp.forEach(function(l,i){
+  for (const [i, val] of rtmp.entries()) {
+   if (i>4000000) { oi.value='Error, lines > '+(i-1); break; }
     //console.log(i,l);
-    l=l.trim();
+    l=val.trim();
     var ll=l.split(" ");
-    if (ll[0]=='0' && ll[2]=='FAM') {
-     ged.push(l);
-     skp=1; fam={h:-1,w:-1,c:-1};
-    }
     if (ll[0]=='0' && ll[2]=='INDI') {
      if (blk>=0 && rawname && json.people[blk].gn=='') {
       tmp=rawname.split("/");
@@ -631,42 +663,56 @@ function impged(e) {
       json.people[blk].fn=tmp[1]==undefined ? "" : tmp[1];
      }
      blk++; skp=0; xx++;
-     if (dbg==1){
      if (xx>7) { xx=0;yy--; }
-     //console.log('blk',blk);
-     var tmp={"id":blk,"x":(box.w*(xx*1.1)),"y":(box.h*(yy*1.1)),"w":box.w,"h":box.h,"gn":'',"fn":'',"sx":sx.selectedIndex,"br":'',"dt":'',"oi":'',"indi":l.split("@")[1]};
-     } else {
-     var tmp={"id":blk,"x":-1,"y":-1,"w":box.w,"h":box.h,"gn":'',"fn":'',"sx":sx.selectedIndex,"br":'',"dt":'',"oi":'',"indi":l.split("@")[1]};
-    }
+     var tmp={"id":blk,"x":false,"y":false,"w":box.w,"h":box.h,"gn":'',"fn":'',"sx":sx.selectedIndex,"br":'',"dt":'',"oi":'',"indi":l.split("@")[1],famc:'',fams:'',lvl:false};
      json.people.push(tmp);
      rawname='';
     }
-    
     if (blk==-1 && l.includes('_TREE')) {
      tr.value=l.replace(/\w+.\w+./,"");
      uptrn();
     }
+    //GED family list
+    if (ll[0]=='0' && ll[2]=='FAM') {
+     //console.log(ged[nf]);
+     nf=l.split("@")[1]; //new family
+     ged[nf]= {}; ch=0;wf=0;hb=0;
+     skp=1; fam={h:-1,w:-1,c:-1};
+    }
     if (skp==1 && blk>=0) {
      //setup lines
      if (l.includes('HUSB')) {
-      ged.push(l);
-      fam.h=fpi(l.split("@")[1]);
+      //ged.push(l);
+      tmp=l.split("@")[1];
+      //console.log(nf,tmp);
+      ged[nf]['h'+hb]=tmp;
+      fam.h=fpi(tmp);
+      hb++;
       //console.log(fam.h,fam.w);
       if (fam.w>-1) {
        json.lines.push({"id":fam.w+"-"+fam.h,"rl":1});
       }
      }
      if (l.includes('WIFE')) {
-      ged.push(l);
-      fam.w=fpi(l.split("@")[1]);
+      //ged.push(l);
+      tmp=l.split("@")[1];
+      //console.log(nf,tmp);
+      ged[nf]['w'+wf]=tmp;
+      fam.w=fpi(tmp);
+      wf++;
       //console.log(fam.h,fam.w);
       if (fam.h>-1) {
        json.lines.push({"id":fam.w+"-"+fam.h,"rl":1});
       }
      }
      if (l.includes('CHIL')) {
-      ged.push(l);
-      fam.c=fpi(l.split("@")[1]);
+      //ged.push(l);
+      tmp=l.split("@")[1];
+      //console.log(nf,tmp);
+      ged[nf]['c'+ch]=tmp;
+      fam.c=fpi(tmp);
+      ch++;
+      //fam.c=fpi(l.split("@")[1]);
       var a= fam.w==-1 ? fam.h : fam.w;
       //console.log(a, fam);
       if (a>-1) {
@@ -725,51 +771,134 @@ function impged(e) {
      if (l.includes('SURN')) {
       json.people[blk].fn=l.replace(/\w+.\w+./,"").trim();
      }
+     if (l.includes('FAMC')) { //child of
+      json.people[blk].famc=l.split("@")[1];
+     }
+     if (l.includes('FAMS')) { //parent of
+      json.people[blk].fams=l.split("@")[1];
+     }
+     
      if (l.includes('SEX')) {
       var s=l.replace(/\d+.\w+./,"").toUpperCase()=='F' ? 0 : 1;
       json.people[blk].sx=s;
      }
     }
-   })
-   var gx=1,gy=1,c=0;
-   if (dbg==0){
-    var cd=0; //child drawn
-    ged.forEach(function(l,i){
-    if (l.substr(0,1)=="0") {
-     // moves down for next family
-     //c= c==1 ? box.h+20 : 10;
-     //console.log(c,cd,l);
-     var tmp= c==1 && cd==0 ? 10 : box.h+20;
-     gy= i>0 ? gy+(tmp) : gy;
-     gx= 1; c=0; cd=0;
-    } else {
-     //otherwise position Family
-     if (c==0 && l.includes('CHIL')) {
-      gx=1; gy=gy+box.h+20;c=1;
-     }
-     
-     var t=fpi(l.split("@")[1])
-     //json.people[t].y=gy;
-     //json.people[t].x=gx;
-     
-     if (json.people[t].x==-1){
-      json.people[t].y=gy;
-      json.people[t].x=gx;
-      cd = c==1 ? cd+1 : cd;
-     }
-     
-     //console.log(t,l,json.people[t].gn,json.people[t].fn,gx,gy,c,cd);
-     gx = gx+box.w+50;
-    }
-    
-   })
-   }
-   poplst();
-   //draw();
-   pan(0,500); //move canvas down
+   //}); //end for
+   }; //end for
+   oi.value='Success, all lines loaded '+(rtmp.length);
+   //sort tree, start with person 0
+   var ch,hc;
+   ckged=[];
+   row=[0,1]; //row lengths
+   json.people[0].lvl=1; //defaults for person 0
+   json.people[0].x=box.w+50;
+   json.people[0].y=box.h+50;
+   //json.people.forEach(function(l,i){ pit(i,0); }); //child, has parents
+   //json.people.forEach(function(l,i){ pit(i,1); }); //parents n child
+   json.people.forEach(function(l,i){
+    //add name to check last list.
+    if (fre(i)==-1) { ckged.push(i); }
+   }); // find lvl
+   //console.log('ckged',ckged);
+   //ckged.push(false);
+   ckged.forEach(function(l,i){ fre(l); });
+
+  poplst();
+  bldHsCh();
+  //draw();
+  pan(0,500); //move canvas down
  };
  reader.readAsText(file);
 }
+
+
+function fre(id) { //find relative with lvl
+ var l=json.people[id];
+ if (l.x!==false) { return; } // check x is unset
+ //console.log('FRE:',l.id,l.gn);
+ // check for marriage (or children) so set lvl
+ if (l.fams!='') {
+  hc=l.fams;
+  //console.log('s',l.gn);
+  Object.keys(ged[hc]).forEach(function(k,j){ // parse families
+   //console.log(k,j,json.people[fpi(ged[hc][k])] );
+   tmp=json.people[fpi(ged[hc][k])];
+   if (l.lvl===false && tmp.lvl!==false) {
+    //console.log('A',tmp.gn,k);
+    json.people[id].lvl=k.substr(0,1)=='c' ? tmp.lvl-1 : tmp.lvl;
+   }
+  });
+ }
+ if (l.lvl===false && l.famc!='') {
+  hc=l.famc;
+  //console.log('c',l.gn);
+  Object.keys(ged[hc]).forEach(function(k,j){ // parse families
+   //console.log(k,j,json.people[fpi(ged[hc][k])] );
+   tmp=json.people[fpi(ged[hc][k])];
+   if (l.lvl===false && tmp.lvl!==false) {
+    //console.log('B',tmp.gn,k);
+    json.people[id].lvl=k.charAt(0)=='c' ? tmp.lvl : tmp.lvl+1;
+    //console.log('B+',json.people[id].lvl,k,k.charAt(0));
+   }
+  });
+ }
+ if (json.people[id].lvl!==false) {
+  //console.log(json.people[id].gn,json.people[id].lvl,row[json.people[id].lvl]);
+  //console.log('srow',json.people[id].lvl,'val',row[json.people[id].lvl]);
+  
+  row[json.people[id].lvl]= row[json.people[id].lvl]===undefined ? 1 : row[json.people[id].lvl]+1;
+  //console.log('erow',json.people[id].lvl,'val',row[json.people[id].lvl]);
+
+  json.people[id].x=(50+box.w)*row[json.people[id].lvl];
+  json.people[id].y=(50+box.h)*json.people[id].lvl;
+  //console.log(json.people[id].gn,'x',json.people[id].x,'y',json.people[id].y,'lvl',json.people[id].lvl);
+  return;
+ } else { return -1; }
+}
+
+/*
+function pit(id,cs){ //place in tree, person id, fam c or s
+ //id person needs lvl json.people[id].lvl
+ console.log(id,json.people[id].gn,'lvl',json.people[id].lvl);
+ 
+ if (json.people[id].lvl===false) {
+  console.log('false');
+  //if (fre(id)==-1) { return; }
+ }
+ if (cs==0){ hc=json.people[id].famc; } //child, has parents
+ if (cs==1){ hc=json.people[id].fams; } //parents and children
+ //console.log(json.people[id].gn,hc);
+ if (hc){ // check if has family
+  plvl=false;
+  Object.keys(ged[hc]).forEach(function(k,j){ // parse families
+   //console.log('>',id,j,k,ged[hc][k],fpi(ged[hc][k]));
+   //console.log(json.people[fpi(ged[hc][k])].x,json.people[fpi(ged[hc][k])].gn);
+   //console.log(json.people[id].x);
+   idx=fpi(ged[hc][k]);
+   if (k.charAt(0)=='h' || k.charAt(0)=="w") { //parents
+    if (json.people[idx].x==-1) {
+     json.people[idx].lvl=plvl ? plvl : json.people[id].lvl+(cs ? 0:1);
+    } else { plvl=json.people[idx].lvl; }
+   } else { //siblings
+    //plvl=false;
+    if (json.people[idx].x==-1) {
+     json.people[idx].lvl=plvl ? plvl-1 : json.people[id].lvl+(cs ? -1:0);
+    }
+   }
+   if (json.people[idx].lvl !==false && json.people[idx].x ===false) {
+     if (row[json.people[idx].lvl]==undefined) { row[json.people[idx].lvl] =0; }
+     row[json.people[idx].lvl]++;
+     //console.log('y',json.people[idx].lvl,'x',row[json.people[idx].lvl]);
+     json.people[idx].x=(50+box.w)*row[json.people[idx].lvl];
+     json.people[idx].y=(50+box.h)*json.people[idx].lvl;
+     console.log(json.people[id].gn,'x=',json.people[id].x);
+     //console.log('c',cs,json.people[idx].gn,json.people[idx].lvl);
+   }
+  });
+ }
+}
+*/
+
 function fpi(n){
  //find person id
  for(let i=0;i<json.people.length;i++){
@@ -777,6 +906,7 @@ function fpi(n){
  }
  return n;
 }
+
 function keyz(e){
  e = e || window.event;
  //console.log(fobur,e.code,e.key);
@@ -828,7 +958,6 @@ can.onmousemove = movr;
 can.setAttribute('tabindex','0');
 can.addEventListener("blur", fucus);
 can.addEventListener("focus", fucus);
-
 can.addEventListener("touchstart", clkd, {passive: true});
 can.addEventListener("touchend", clku, false);
 //spr.addEventListener("touchcancel", handleCancel, false);
@@ -852,7 +981,6 @@ fu.addEventListener('click', fullscreen);
 mu.addEventListener('click', mmode);
 lt.onclick = function(){ openFD('.json',load) }
 imp.onclick = function(){ openFD('.ged',impged) }
-
 //exp.addEventListener('click', expged);
 //ln.addEventListener('dblclick', updln);
 json = JSON.parse(data);
