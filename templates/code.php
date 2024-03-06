@@ -46,7 +46,8 @@
 <button id="cent">Center Tree</button>
 <button id='imp'>Import GED</button>
 <button id='sos'>Help</button>
-[<font id='ver'></font>]
+[<font id='ver'></font>]<br>
 </div>
+<hr id="hr">
 <button id='sh'>Hide</button>
 </div>

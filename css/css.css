@@ -1,15 +1,17 @@
  #can{top:0px;left:0px;position:fixed;}
- table { width:99% }
+ table { width:99%;}
  .inp,#o { width:95% !important; }
  tr,td,input,#r,#s { min-height:25px !important; height:25px !important; }
  #t22,#addPer,#updPer,#delPer,#imp,#cent,#nt,#st,#lt,#fu,#sh,#sos { padding:0px 7px 0px 7px !important; font-size: 13px !important; min-height:23px !important; height:23px !important; }
  #bg,#lang {min-height:23px !important; height:23px !important;}
  td { border:1px dotted green; color:black; text-align:center; }
  tr:hover {background:none !important; }
- #ln,#hp { width:49% !important; height:200px; }
+ #ln,#hp { width:49% !important; height:200px; margin:0; padding:0; border:0; }
  #hp { overflow-y: scroll; resize: none; }
- #inp { z-index:99;position:relative; background:grey; color:black; }
- #sh,#fu { z-index:99;position:relative; }
- #app-content { height:100%; background:black; }
+ #inp { z-index:99;position:relative; background:grey; color:black;overflow-y: scroll;overflow-x: hidden; }
+ #fu { z-index:99;position:relative; }
+ #app-content { background:black; }
  #t22 { padding: 10px 20px; border: 1px solid #ccc; cursor: pointer; transition: background-color 0.3s ease; }
  #t22.active { background-color: #008844; }
+ #hr { height:10px;width:90%; cursor:ns-resize; color:red; background-color:green;margin: auto;}
+ #sh,#hr {position:absolute;z-index:99;}

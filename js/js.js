@@ -1,5 +1,9 @@
 /*
  TO DO
+
+NextCloud
+ drag bar past 0 / toolbar
+ figure out min width?
  
  GED Delete issue
   gedcom555.GED
@@ -17,7 +21,7 @@
 */
 
 //Global Variables ***
-ver="1.3.2"; //VERSION
+ver="1.3.4"; //VERSION
 document.getElementById('ver').innerHTML="Ver "+ver;
 
 //define json structure
@@ -25,7 +29,9 @@ const newdata='{ "pan":[ { "x":0,"y":0 } ], "tree":"My Family", "select":0, "peo
 
 const dbg=0;
 const box={w:160,h:100};
+const ac=document.getElementById('app-content');
 const imp = document.getElementById('imp');
+const inp = document.getElementById('inp');
 //const exp = document.getElementById('exp');
 const lng = document.getElementById('lang');
 const cent = document.getElementById('cent');
@@ -41,6 +47,7 @@ const ln = document.getElementById('ln');
 const hp = document.getElementById('hp');
 const st = document.getElementById('st');
 const lt = document.getElementById('lt');
+const hr = document.getElementById('hr');
 const tr = document.getElementById('t');
 const gn = document.getElementById('g');
 const fn = document.getElementById('f');
@@ -51,6 +58,8 @@ const dt = document.getElementById('d');
 const rl = document.getElementById('r');
 const can=document.getElementById('can');
 const ctx = can.getContext("2d");
+const offs=ac.getBoundingClientRect().top;
+//console.log('offset',offs);
 var data=newdata;
 var fobur="blur";
 var tim; //pan timer
@@ -64,7 +73,13 @@ var hsChld=[]; //delete helper
 var fs=1,hole,json,drag=0,selc=[-1],rstim; //scrn resize timer;
 var p={x:10,y:15}; //drag pan previous
 var k={x:0,y:0}; //key pan plus drag
+//bar length
+hr.style.width=ac.getBoundingClientRect().width+'px';
+inp.style.height=inp.getBoundingClientRect().height+'px'; //set height
+hd.style.top=parseInt(inp.style.height)+20+'px';
 bg.selectedIndex=0;
+ln.style.height='200px';
+hp.style.height='200px';
 document.getElementById('addPer').disabled=false;
 document.getElementById('updPer').disabled=true;
 document.getElementById('delPer').disabled=true;
@@ -195,7 +210,7 @@ function clkd(evn){
  p.x=evn.clientX;
  p.y=evn.clientY;
  tmp=chk(p.x,p.y);
- console.log(json.people[tmp]);
+ //console.log(json.people[tmp]);
  if (tmp!=-1 && mu.classList[0]) { //multiple select mode
   if (selc.includes(tmp)) {
    selc = selc.filter(item => ![tmp].includes(item));
@@ -295,20 +310,40 @@ function scale(){
  //change/set w/h as screen changes
  aw=window.innerWidth;ah=window.innerHeight;
  //console.log('sc',aw,ah);
+ hr.style.width=ac.getBoundingClientRect().width+'px';
  can.width=aw;can.height=ah;
  draw();
 }
 
+function rs(e){ //resize
+ //resize panel
+ //console.log(e);
+ if (e.buttons==1) {
+  //console.log(e.pageY-offs);
+  var yyy=e.pageY-offs>0 ? e.pageY-offs : 0;
+  window.getSelection().removeAllRanges();
+  hr.style.top=(yyy)+'px';
+  hd.style.top=(yyy+8)+'px';
+  inp.style.height=(yyy)+'px';
+  if (inp.style.display=='none') { hide(); }
+ }
+}
+
 function hide(){
- let tmp=document.getElementById('inp');
- if (tmp.style.display=='none'){
-  tmp.style.display='block';
+ if (inp.style.display=='none'){
+  inp.style.display='block';
+  console.log(inp.style.height);
+  hr.style.top=parseInt(inp.style.height)+'px';
+  hd.style.top=parseInt(inp.style.height)+10+'px';
   document.getElementById('sh').innerHTML=tran[lng.selectedIndex][45]; //'Hide';
  } else {
-  tmp.style.display='none';
+  inp.style.display='none';
+  hr.style.top=0+'px';
+  hd.style.top=10+'px';
   document.getElementById('sh').innerHTML=tran[lng.selectedIndex][46]; //'Show';
  }
 }
+
 function poplst(cl=0){
  for (a in json.lines) { ln.options.remove(0); } //clear
  if (cl==1) { return; }
@@ -533,11 +568,11 @@ function load(e){
 }
 
 function openFD(a,c) {
- var inp = document.createElement("input");
- inp.type = "file";
- inp.accept = a;
- inp.addEventListener("change", c);
- inp.click(); //inp.dispatchEvent(new MouseEvent("click"));
+ var inpt = document.createElement("input");
+ inpt.type = "file";
+ inpt.accept = a;
+ inpt.addEventListener("change", c);
+ inpt.click(); //inp.dispatchEvent(new MouseEvent("click"));
 }
 
 function newt(sk=0) {
@@ -569,8 +604,8 @@ function chbg() {
  //console.log(bg);
  if (bg.selectedIndex==0) { bc='black'; }
  if (bg.selectedIndex==1) { bc='white'; }
- var elm=document.getElementById("app-content");
- elm.style.background=bc;
+ console.log(bc,ac);
+ ac.style.background=bc;
  draw();
 }
 function lang(){
@@ -616,10 +651,12 @@ function fullscreen(){
  }
  fu.innerHTML=tran[lng.selectedIndex][39+fs];
  setTimeout(() => {
-  var inp=document.getElementById("inp").getBoundingClientRect();
-  var tmp=inp.top + window.scrollY;
+  var inx=inp.getBoundingClientRect();
+  var tmp=inx.top + window.scrollY;
   //console.log(tmp,inp.top, window.scrollY);
   can.style.top=tmp+"px";
+  ac.style.height=(window.innerHeight-tmp-10)+'px';
+  //console.log('rs',tmp, ac.style.height);
   draw(1);
  }, "500");
 }
@@ -856,49 +893,6 @@ function fre(id) { //find relative with lvl
  } else { return -1; }
 }
 
-/*
-function pit(id,cs){ //place in tree, person id, fam c or s
- //id person needs lvl json.people[id].lvl
- console.log(id,json.people[id].gn,'lvl',json.people[id].lvl);
- 
- if (json.people[id].lvl===false) {
-  console.log('false');
-  //if (fre(id)==-1) { return; }
- }
- if (cs==0){ hc=json.people[id].famc; } //child, has parents
- if (cs==1){ hc=json.people[id].fams; } //parents and children
- //console.log(json.people[id].gn,hc);
- if (hc){ // check if has family
-  plvl=false;
-  Object.keys(ged[hc]).forEach(function(k,j){ // parse families
-   //console.log('>',id,j,k,ged[hc][k],fpi(ged[hc][k]));
-   //console.log(json.people[fpi(ged[hc][k])].x,json.people[fpi(ged[hc][k])].gn);
-   //console.log(json.people[id].x);
-   idx=fpi(ged[hc][k]);
-   if (k.charAt(0)=='h' || k.charAt(0)=="w") { //parents
-    if (json.people[idx].x==-1) {
-     json.people[idx].lvl=plvl ? plvl : json.people[id].lvl+(cs ? 0:1);
-    } else { plvl=json.people[idx].lvl; }
-   } else { //siblings
-    //plvl=false;
-    if (json.people[idx].x==-1) {
-     json.people[idx].lvl=plvl ? plvl-1 : json.people[id].lvl+(cs ? -1:0);
-    }
-   }
-   if (json.people[idx].lvl !==false && json.people[idx].x ===false) {
-     if (row[json.people[idx].lvl]==undefined) { row[json.people[idx].lvl] =0; }
-     row[json.people[idx].lvl]++;
-     //console.log('y',json.people[idx].lvl,'x',row[json.people[idx].lvl]);
-     json.people[idx].x=(50+box.w)*row[json.people[idx].lvl];
-     json.people[idx].y=(50+box.h)*json.people[idx].lvl;
-     console.log(json.people[id].gn,'x=',json.people[id].x);
-     //console.log('c',cs,json.people[idx].gn,json.people[idx].lvl);
-   }
-  });
- }
-}
-*/
-
 function fpi(n){
  //find person id
  for(let i=0;i<json.people.length;i++){
@@ -940,9 +934,11 @@ function mmode(){
  }
  draw(1);
 }
+
 function sos(){
  alert(help[lng.selectedIndex]);
 }
+
 function fucus(e){
  //console.log(e.type);
  fobur=e.type;
@@ -979,6 +975,11 @@ bg.addEventListener('change', chbg);
 hd.addEventListener('click', hide);
 fu.addEventListener('click', fullscreen);
 mu.addEventListener('click', mmode);
+hr.addEventListener('mousemove', rs);
+addEventListener("resize", (e) => {
+ hr.style.width=document.getElementById('app-content').getBoundingClientRect().width-2; 
+});
+
 lt.onclick = function(){ openFD('.json',load) }
 imp.onclick = function(){ openFD('.ged',impged) }
 //exp.addEventListener('click', expged);
