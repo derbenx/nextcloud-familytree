@@ -1,9 +1,11 @@
 /*
  TO DO
 
-NextCloud
- drag bar past 0 / toolbar
- figure out min width?
+ bar doesn't work chrome
+ canvas doesn't resize with screen
+
+ NextCloud
+  figure out min width?
  
  GED Delete issue
   gedcom555.GED
@@ -21,7 +23,7 @@ NextCloud
 */
 
 //Global Variables ***
-ver="1.3.4"; //VERSION
+ver="1.3.5"; //VERSION
 document.getElementById('ver').innerHTML="Ver "+ver;
 
 //define json structure
@@ -62,6 +64,7 @@ const offs=ac.getBoundingClientRect().top;
 //console.log('offset',offs);
 var data=newdata;
 var fobur="blur";
+var bdrg=0; //bar drag
 var tim; //pan timer
 var row=[0,1]; //row lengths GED import
 var ged=[]; // GED tree sort data
@@ -315,21 +318,8 @@ function scale(){
  draw();
 }
 
-function rs(e){ //resize
- //resize panel
- //console.log(e);
- if (e.buttons==1) {
-  //console.log(e.pageY-offs);
-  var yyy=e.pageY-offs>0 ? e.pageY-offs : 0;
-  window.getSelection().removeAllRanges();
-  hr.style.top=(yyy)+'px';
-  hd.style.top=(yyy+8)+'px';
-  inp.style.height=(yyy)+'px';
-  if (inp.style.display=='none') { hide(); }
- }
-}
-
 function hide(){
+ //toggle data input menu
  if (inp.style.display=='none'){
   inp.style.display='block';
   console.log(inp.style.height);
@@ -345,7 +335,8 @@ function hide(){
 }
 
 function poplst(cl=0){
- for (a in json.lines) { ln.options.remove(0); } //clear
+ //clear
+ for (a in json.lines) { ln.options.remove(0); } 
  if (cl==1) { return; }
  //populate list
  for(let i=0;i<json.lines.length;i++){
@@ -497,6 +488,7 @@ function updln(){
  document.getElementById('updPer').disabled=true;
  document.getElementById('delPer').disabled=true;
 }
+
 function mselc(e){ //ID pairs click
  //console.log(e.type);
  if (ln.length<1 || ln.selectedIndex==-1) { return }
@@ -609,7 +601,7 @@ function chbg() {
  draw();
 }
 function lang(){
- //console.log('lng',lng.selectedIndex);
+ //console.log('lang',lng.selectedIndex);
  for(let i=1;i<=26;i++){
   var tmp=tran[lng.selectedIndex][i];
   if (tmp.substr(-2,1)==">") {
@@ -636,7 +628,7 @@ function lang(){
  poplst();
 }
 function fullscreen(){
- //console.log();
+ //console.log('fullscreen');
  if (fs==0){
   fs=1;
   //document.getElementById('fu').innerHTML='Normal';
@@ -922,6 +914,7 @@ function keyz(e){
  }
 }
 function mmode(){
+ console.log('mmode');
  mu.classList.toggle('active');
  if (mu.classList[0]) {
   selc=[];
@@ -943,6 +936,7 @@ function fucus(e){
  //console.log(e.type);
  fobur=e.type;
 }
+
 //Listeners ***
 //window.onkeypress = keyz;
 document.body.addEventListener('keydown', keyz);
@@ -975,9 +969,22 @@ bg.addEventListener('change', chbg);
 hd.addEventListener('click', hide);
 fu.addEventListener('click', fullscreen);
 mu.addEventListener('click', mmode);
-hr.addEventListener('mousemove', rs);
+hr.addEventListener('mousemove', () => { bdrg=1; });
+document.onmousemove = (e) => {
+ //console.log(e.clientY, e.buttons);
+ if (bdrg==1 && e.buttons==1){
+  var yyy=e.pageY-offs>0 ? e.pageY-offs : 0;
+  window.getSelection().removeAllRanges();
+  hr.style.top=(yyy)+'px';
+  hd.style.top=(yyy+8)+'px';
+  inp.style.height=(yyy)+'px';
+  if (inp.style.display=='none') { hide(); }
+ }
+ if (e.buttons==0){ bdrg=0; }
+}
 addEventListener("resize", (e) => {
- hr.style.width=document.getElementById('app-content').getBoundingClientRect().width-2; 
+ hr.style.width=document.getElementById('app-content').getBoundingClientRect().width-2;
+ //resize canvas too?
 });
 
 lt.onclick = function(){ openFD('.json',load) }
