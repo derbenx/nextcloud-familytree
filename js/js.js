@@ -23,7 +23,7 @@
 */
 
 //Global Variables ***
-ver="1.3.5"; //VERSION
+ver="1.3.6"; //VERSION
 document.getElementById('ver').innerHTML="Ver "+ver;
 
 //define json structure
@@ -995,4 +995,5 @@ json = JSON.parse(data);
 cent.cen = 1;
 pan(0,150); //move canvas down
 fullscreen(); // Set up offset
+
 start();
